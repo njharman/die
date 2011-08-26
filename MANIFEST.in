@@ -1,0 +1,7 @@
+include setup.py
+include CHANGELOG
+include README
+include LICENSE
+include runall.py
+include demo.py
+recursive-include doc *.css *.html
