@@ -25,7 +25,7 @@ class StandardDieTestCase(unittest.TestCase):
             self.assertEqual(i, len(t.faces))
             self.assertEqual(i, len(t.values))
             self.assertEqual(i, t.sides)
-            self.failUnless(t.numeric)
+            self.assertTrue(t.numeric)
 
 
 # This class is reused for other test cases below

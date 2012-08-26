@@ -26,28 +26,25 @@ class Statistic(object):
         @param roll: ``Roll`` instance.
         '''
         self.roll = roll
-        self._sum = 0
-        self._avr = 0
         self._bucket = dict()
-
-    sum = property(lambda s: s._sum)
-    avr = property(lambda s: s._avr)
+        self.sum = 0
+        self.avr = 0
 
     @property
     def bucket(self):
-        result = map(None, self._bucket.keys(), self._bucket.values())
+        result = list(self._bucket.items())
         result.sort()
         return result
 
     def do_sum(self, count=1):
-        '''Set self.sum, self.avr and return sum of count dice rolls.
+        '''Set self.sum, self.avr and return sum of dice rolled count times.
         @param count: Number of rolls to make.
         @return: total (numeric) of 'count' dice rolls, 0 if not summable
         '''
         if not self.roll.summable:
             return 0
-        self._sum = reduce(lambda x, y: x + y, self.roll.roll_totalX(count))
-        self._avr = self._sum / count
+        self.sum = sum(self.roll.roll_totalX(count))
+        self.avr = self.sum / count
         return self.sum
 
     def do_bucket(self, count=1):
@@ -55,11 +52,10 @@ class Statistic(object):
         @param count: Number of rolls to make.
         @return: list of tuples (roll_total, times it was rolled)
         '''
-        h = dict()
+        self._bucket = dict()
         for roll in self.roll.roll_totalX(count):
-            count = h.get(roll, 0)
-            h[roll] = count + 1
-        self._bucket = h
+            count = self._bucket.get(roll, 0)
+            self._bucket[roll] = count + 1
         return self.bucket
 
     def do_run(self, count=1):
@@ -83,5 +79,5 @@ class Statistic(object):
             hit = h.get(roll, 0)
             h[roll] = hit + 1
         self._bucket = h
-        self._sum = total
-        self._avr = total / count
+        self.sum = total
+        self.avr = total / count

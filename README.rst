@@ -7,12 +7,8 @@ Flexibility over speed.
 
 Installing
 ----------
-Prequisites:
- - six_ Python 2/3 compatibility library.
-
 ::
 
-  pip install -U -r requirements.pip
   python setup.py install
 
 
@@ -24,7 +20,6 @@ Additional unittests prerequisites:
 
 The author uses nose_ to run unittests. ::
 
-  pip install -U -r requirements.pip --use-mirrors
   pip install -U pep8 --use-mirrors
   nosetests
 
@@ -48,11 +43,11 @@ History
 
 0.2.0
   Updated to modern style, pep8, tests, docs, travis-ci, more unittests.
+  Py3.x support.
 
 0.1
   Initial release.
 
-.. _six: http://packages.python.org/six/
 .. _pep8: http://pypi.python.org/pypi/pep8/
 .. _unittest2: http://pypi.python.org/pypi/unittest2/
 .. _nose: http://pypi.python.org/pypi/nose/

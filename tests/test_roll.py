@@ -9,7 +9,7 @@ class RollTestor(unittest.TestCase):
     def test_init(self):
         r = die.roll.Roll()
         r = die.roll.Roll(self.dice)
-        self.assertEqual(map(str, self.dice), map(str, r.dice))
+        self.assertEqual([str(s) for s in self.dice], [str(s) for s in r.dice])
         r.description
 
     def test_odds(self):
@@ -30,9 +30,9 @@ class RollTestor(unittest.TestCase):
 
     def test_summable(self):
         r = die.roll.Roll(self.dice)
-        self.failUnless(r.summable)
+        self.assertTrue(r.summable)
         r = die.roll.Roll([die.die.Standard(6), die.die.Weird('Al', (('a', 'a', 1),))])
-        self.failIf(r.summable)
+        self.assertFalse(r.summable)
 
     def test_add_die_remove_die(self):
         r = die.roll.Roll()

@@ -40,6 +40,6 @@ Support Classes
 ''' % {'name': __name__, 'version': __version__, 'copyright': __copyright__,
        'license': __license__, 'email': __email__, 'author': __author__}
 
-from die import NumericBased, Standard, Numeric, Weird
-from roll import Roll
-import stats
+from .die import NumericBased, Standard, Numeric, Weird
+from .roll import Roll
+from .stats import Statistic

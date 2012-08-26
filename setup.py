@@ -10,7 +10,7 @@ except ImportError:
 
 setup(
     name='die',
-    packages=['die',],
+    packages=['die', ],
     version=die.__version__,
     author=die.__author__,
     author_email=die.__email__,
