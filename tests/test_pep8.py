@@ -3,10 +3,7 @@ import unittest
 import re
 import os
 import sys
-
-from six.moves import cStringIO
-StringIO = cStringIO
-
+import cStringIO as StringIO
 from distutils.version import LooseVersion
 
 import pep8
