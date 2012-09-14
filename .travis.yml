@@ -19,6 +19,7 @@ script:
     # pep8 only 2.7
     - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then nosetests; fi
     - if [[ $TRAVIS_PYTHON_VERSION != '2.7' ]]; then nosetests -I test_pep8.py; fi
+    - python demo.py
     - python setup.py install
 
 notifications:

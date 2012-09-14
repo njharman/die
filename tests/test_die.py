@@ -15,8 +15,8 @@ class StandardDieTestCase(unittest.TestCase):
         t = die.die.Standard(6)
         t.roll()
         t.tuple_roll()
-        self.assertEqual(2, len(t.rolls(2)))
-        self.assertEqual(2, len(t.tuple_rolls(2)))
+        self.assertEqual(2, len(t.roll(2)))
+        self.assertEqual(2, len(t.tuple_roll(2)))
 
     def test_properties(self):
         for i in self.good:
@@ -37,7 +37,7 @@ class NumericBasedTestCase(unittest.TestCase):
     get_count = lambda self, face: face[2]
     good_names = ('dTest', 34, ' bob ')
     good_name = good_names[0]
-    bad_names = ('', None, (), ' ', '  ')
+    bad_names = ('', ' ', '  ')
     bad_spec = (None, 1, (), ('+', 3), ('', 1, 0), ('', 0, -2), ('', 't', 1))
     good_spec = (('+', 1, 2), ('-', -1.45, 2), ('', 3, 1), (' ', 4, 1))
     expected_faces = ('+', '+', '-', '-', '', ' ')
@@ -56,9 +56,54 @@ class NumericBasedTestCase(unittest.TestCase):
     def test_minimal(self):
         t = self.test_class(self.good_name, self.good_spec)
         t.roll()
-        t.tuple_roll()
-        self.assertEqual(2, len(t.rolls(2)))
-        self.assertEqual(2, len(t.tuple_rolls(2)))
+        str(t)
+        repr(t)
+        self.assertEqual(2, len(t.tuple_roll()))
+        self.assertEqual(3, len(t.roll(3)))
+        self.assertEqual(3, len(t.tuple_roll(3)))
+
+    def test_coercion(self):
+        t = self.test_class(self.good_name, self.good_spec)
+        t()
+        if t.numeric:
+            int(t)
+            float(t)
+
+    def test_operators(self):
+        t = self.test_class(self.good_name, self.good_spec)
+        if t.numeric:
+            t + 1
+            1 + t
+            1 - t
+            t - 1
+            t * 1
+            1 * t
+            t / 1
+            1 / t
+            t // 1
+            1 // t
+            t % 1
+            1 % t
+            t ** 1
+            1 ** t
+
+    def test_comparisons(self):
+        t = self.test_class(self.good_name, self.good_spec)
+        if t.numeric:
+            t > 1
+            t >= 1
+            t < 1
+            t <= 1
+
+    def test_equality(self):
+        t1 = self.test_class(self.good_name, self.good_spec)
+        t2 = self.test_class(self.good_name, self.good_spec)
+        t3 = die.die.Standard(6)
+        self.assertEqual(t1, t1)
+        self.assertEqual(t1, t2)
+        self.assertNotEqual(t1, t3)
+        self.assertNotEqual(t1, 1)
+        self.assertNotEqual(t1, repr(t1))
 
     def test_properties(self):
         for i in range(40):

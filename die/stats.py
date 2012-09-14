@@ -19,11 +19,11 @@ __doc__ = '''%(name)s
 
 
 class Statistic(object):
-    '''Roll lots of dice.'''
+    '''Roll lots of dice, calc statistics.'''
 
     def __init__(self, roll):
         '''
-        @param roll: ``Roll`` instance.
+        :param roll: ``Roll`` instance.
         '''
         self.roll = roll
         self._bucket = dict()
@@ -37,25 +37,24 @@ class Statistic(object):
         return result
 
     def do_sum(self, count=1):
-        '''Set self.sum, self.avr and return sum of dice rolled count times.
-        @param count: Number of rolls to make.
-        @return: total (numeric) of 'count' dice rolls, 0 if not summable
+        '''Set self.sum, self.avr and return sum of dice rolled, count times.
+        :param count: Number of rolls to make
+        :return: Total sum of all rolls
         '''
         if not self.roll.summable:
             return 0
-        self.sum = sum(self.roll.roll_totalX(count))
+        self.sum = sum(self.roll.roll(count))
         self.avr = self.sum / count
         return self.sum
 
     def do_bucket(self, count=1):
         '''Set self.bucket and return results.
-        @param count: Number of rolls to make.
-        @return: list of tuples (roll_total, times it was rolled)
+        :param count: Number of rolls to make
+        :return: List of tuples (total of roll, times it was rolled)
         '''
         self._bucket = dict()
-        for roll in self.roll.roll_totalX(count):
-            count = self._bucket.get(roll, 0)
-            self._bucket[roll] = count + 1
+        for roll in self.roll.roll(count):
+            self._bucket[roll] = self._bucket.get(roll, 0) + 1
         return self.bucket
 
     def do_run(self, count=1):
@@ -68,16 +67,15 @@ class Statistic(object):
           - stats.sum
           - stats.avr
 
-        @param count: Number of rolls to make.
+        :param count: Number of rolls to make.
         '''
         if not self.roll.summable:
             raise Exception('Roll is not summable')
         h = dict()
         total = 0
-        for roll in self.roll.roll_totalX(count):
+        for roll in self.roll.x_rolls(count):
             total += roll
-            hit = h.get(roll, 0)
-            h[roll] = hit + 1
+            h[roll] = h.get(roll, 0) + 1
         self._bucket = h
         self.sum = total
         self.avr = total / count

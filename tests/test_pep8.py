@@ -87,7 +87,7 @@ for (dirpath, dirnames, filenames) in os.walk(ROOT, followlinks=True):
         else:
             def closure(self, fullpath=fullpath):
                 checker = pep8.Checker(fullpath, options=self.options)
-                capture = StringIO()
+                capture = StringIO.StringIO()
                 with RedirectIO(capture):
                     errors = checker.check_all()
                 if errors > 0:

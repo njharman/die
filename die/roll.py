@@ -17,44 +17,39 @@ __doc__ = '''%(name)s
 %(license)s
 ''' % {'name': __name__, 'copyright': __copyright__, 'license': __license__}
 
+from collections import defaultdict
+
 
 class Roll(object):
     '''Groups a set of die instances into a single roll.'''
-    def __init__(self, dice=None):
-        '''@param dice: list of dice this roll is composed of'''
-        self._name = ''
-        self._dice = dict()
+    def __init__(self, dice=(), name=''):
+        ''':param dice: list of dice this roll is composed of'''
+        self.name = name
+        self._dice = list()
         self._odds = None
-        if dice is not None:
-            for d in dice:
-                self.add_die(d)
+        for d in dice:
+            self.add_die(d)
 
     def __str__(self):
-        return self.description
-
-    name = property(
-            lambda s: s._name,
-            lambda s, v: setattr(s, '_name', v),
-            )
+        return self.name or self.description
 
     @property
     def description(self):
-        bits = ['%i%s' % (v[0], v[1]) for v in self._dice.values()]
+        dice = defaultdict(int)
+        for die in self._dice:
+            dice[die] += 1
+        bits = ['%i%s' % (v[1], v[0]) for v in dice.items()]
         return '%s Roll' % (', '.join(bits))
 
     @property
     def dice(self):
         '''List of ``Die`` in Roll.'''
-        l = list()
-        for count, die in self._dice.values():
-            for i in range(count):
-                l.append(die)
-        return l
+        return self._dice[:]
 
     @property
     def summable(self):
         '''True if all ``Die`` in Roll can be numerically added.'''
-        for count, die in self._dice.values():
+        for die in self._dice:
             if not die.numeric:
                 return False
         return True
@@ -68,58 +63,46 @@ class Roll(object):
 
     def add_die(self, die, count=1):
         '''Add ``Die`` to Roll.
-        @param die: Die instance
-        @param count: number of times die is rolled
+        :param die: Die instance
+        :param count: number of times die is rolled
         '''
-        roll = self._dice.setdefault(str(die), [0, die])
-        roll[0] += count
+        for x in range(count):
+            self._dice.append(die)
         self._odds = None
 
     def remove_die(self, die):
         '''Remove ``Die`` (first matching) from Roll.
-        @param die: Die instance
+        :param die: Die instance
         '''
-        roll = self._dice.get(str(die), [40, 'dummy'])
-        roll[0] -= 1
-        if roll[0] == 0:
-            del self._dice[str(die)]
-        self._odds = None
+        if die in self._dice:
+            self._dice.remove(die)
 
-    def roll_values(self):
-        '''@return: List of individual Die rolls.'''
-        l = list()
-        for count, die in self._dice.values():
-            l.extend(die.rolls(count))
-        return l
-
-    def roll_total(self):
-        '@return: Sum of rolling Dice.'
-        return sum(self.roll_values())
-
-    def roll_totalX(self, count):
+    def roll(self, count=0, func=sum):
+        '''Roll some dice!
+        :param count: [0] Return list of sums
+        :param func: [sum] Apply func to list of individual die rolls func([])
+        :return: A single sum or list of ``count`` sums
         '''
-        @param count: Number of rolls to make.
-        @return: List of count dice rolls, one sum per roll.
-        '''
-        # some lameness for supposed speed (unprofiled)
-        dice = list(self._dice.values())
-        if len(dice) == 1:
-            rolls, die = dice[0]
-            if rolls == 1:
-                oneroll = lambda: die.roll()
-            else:
-                oneroll = lambda: sum(die.rolls(rolls))
+        if count:
+            return [func([die.roll() for die in self._dice]) for x in range(0, count)]
         else:
-            oneroll = self.roll_total
-        return [oneroll() for x in range(0, count)]
+            return func([die.roll() for die in self._dice])
 
-    def roll_totalGenerator(self):
+    def x_rolls(self, number, count=0, func=sum):
+        '''Iterator of number dice rolls.
+        :param count: [0] Return list of ``count`` sums
+        :param func: [sum] Apply func to list of individual die rolls func([])
         '''
-        @return: generator that will produce roll_total forever
+        for x in range(number):
+            yield self.roll(count, func)
+
+    def iter(self, count=0, func=sum):
+        '''Iterator of infinite dice rolls.
+        :param count: [0] Return list of ``count`` sums
+        :param func: [sum] Apply func to list of individual die rolls func([])
         '''
-        def generator():
-            yield self.roll_total()
-        return generator
+        while True:
+            yield self.roll(count, func)
 
     def _calc_odds(self):
         '''Calculates the absolute probability of all posible rolls.'''
@@ -130,18 +113,46 @@ class Roll(object):
                     combinations = recur(tot, h, dice[1:], combinations)
                 else:
                     combinations += 1
-                    count = h.get(tot, 0)
-                    h[tot] = count + 1
+                    h[tot] = h.get(tot, 0) + 1
             return combinations
         if self.summable:
             start = 0
         else:
             start = ''
         h = dict()
-        dice = list()
-        for (count, die) in self._dice.values():
-            for i in range(0, count):
-                dice.append(die.values)
-        combinations = recur(start, h, dice, 0.0)
-        self._odds = [(x, h[x], h[x] / combinations) for x in h.keys()]
+        funky = [d.values for d in self._dice]
+        # count of possible results of rolling dice
+        combinations = recur(start, h, funky, 0.0)
+        self._odds = [(roll, h[roll], h[roll] / combinations) for roll in h.keys()]
         self._odds.sort()
+
+
+class FuncRoll(Roll):
+    '''Apply func to roll.'''
+    def __init__(self, func, dice=(), name=''):
+        '''
+        :param func: Apply func to list of individual die rolls func([])
+        '''
+        self._func = func
+        super(FuncRoll, self).__init__(dice, name)
+
+    def roll(self, count=0):
+        '''Roll some dice!
+        :param count: [0] Return list of sums
+        :return: A single sum or list of ``count`` sums
+        '''
+        return super(FuncRoll, self).roll(count, self._func)
+
+    def x_rolls(self, number, count=0):
+        '''Iterator of number dice rolls.
+        :param count: [0] Return list of ``count`` sums
+        '''
+        for x in range(number):
+            yield super(FuncRoll, self).roll(count, self._func)
+
+    def iter(self, count=0):
+        '''Iterator of infinite dice rolls.
+        :param count: [0] Return list of ``count`` sums
+        '''
+        while True:
+            yield super(FuncRoll, self).roll(count, self._func)

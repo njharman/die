@@ -17,22 +17,35 @@ __doc__ = '''%(name)s
 %(license)s
 ''' % {'name': __name__, 'copyright': __copyright__, 'license': __license__}
 
-import types
 import random
 
 
 class Die(object):
     '''Base Die class.
 
-    If str(dieA) == str(dieB) then dieA == dieB.
+    Some properties:
+      - Die with identical faces are equal.
+      - Die are not hashable.
+      - Die is numeric if obj.numeric) == True.
+      - obj(), int(obj), float(obj), obj.roll() return result of rolling die.
+      - For numeric die; +, -, *, //, /, %, ^, **, operators cause die roll.
+      - For numeric die; >, >=, <, <= operators cause die roll BUT NOT =, !=.  This is means Die
+        are not sortable.
+
+    Attributes (all read only):
+      - name: short textual identifier.
+      - description: textual description.
+      - numeric: [boolean] True if all of die's faces map to numeric **values**.
+      - sides: number of sides dice has.
+      - items: list of (face, value) tuples.
+      - faces: list of face texts.
+      - values: list of face values.
     '''
     numeric = True
-    description = property(
-            lambda s: s._description,
-            lambda s, value: setattr(s, '_description', value),
-            )
-    name = property(lambda s: s._name)
     sides = property(lambda s: s._sides, doc='''Number of 'sides'.''')
+    items = property(
+            lambda self: [x for x in self._faces],
+            doc='''List of (face, value) tuples.''')
     faces = property(
             lambda self: [x[0] for x in self._faces],
             doc='''List of face texts.''')
@@ -42,49 +55,137 @@ class Die(object):
 
     def __init__(self, name, faces):
         '''
-        @param name: Identifies dice of this type.
-        @param faces: List of (text, value), one per face.
+        :param name: Identifies Die of this type.
+        :param faces: List of (text, value), one per face.
         '''
         try:
-            if not name:
-                raise ValueError
-            self._name = str(name).strip()
-            if not self._name:
+            self.name = name.strip()
+            if not self.name:
                 raise ValueError
         except (TypeError, ValueError):
             raise ValueError('Invalid name')
+        self.description = self.name  # Subclasses are expected to set.  Not passed in as parm cause most want to use _sides, _faces to set.
         if len(faces) == 0:
             raise ValueError('Invalid faces')
         self._faces = faces
         self._sides = len(faces)
 
     def __str__(self):
-        return self._name
+        return self.name
 
-    def roll(self):
-        '''@return: value, one roll'''
-        return self._faces[random.randint(1, self._sides) - 1][1]
+    def __unicode__(self):
+        return unicode(self.name)
 
-    def rolls(self, x):
-        '''@return: values, list of 'x' rolls'''
-        return [self._faces[random.randint(1, self._sides) - 1][1] for i in range(x)]
+    def __repr__(self):
+        return '<%s(%s, %s)>' % (self.__class__.__name__, self.name, self._faces)
 
-    def tuple_roll(self):
-        '''@return: (face, value) tuple, one roll'''
-        return self._faces[random.randint(1, self._sides) - 1]
+    def __call__(self):
+        return self.roll()
 
-    def tuple_rolls(self, x):
-        '''@return: (face, value) tuple, list of 'x' rolls'''
-        l = list()
-        for i in range(x):
-            value = random.randint(1, self._sides)
-            l.append((str(value), value))
-        return l
+    def __int__(self):
+        return int(self.roll())
 
-    def iter(self):
-        '''@return: generator of infinite rolls'''
+    def __float__(self):
+        return float(self.roll())
+
+    def __index__(self):
+        '''Slicing.'''
+        return int(self.roll())
+
+    def __eq__(self, other):
+        if not isinstance(other, Die):
+            return False
+        return self._sides == other._sides and self._faces == other._faces
+
+    def __ne__(self, other):
+        if not isinstance(other, Die):
+            return True
+        return self._sides != other._sides or self._faces != other._faces
+
+    def __cmp__(self, other):
+        return self.roll() - other
+
+    def __add__(self, other):
+        return self.roll() + other
+
+    def __radd__(self, other):
+        return self.roll() + other
+
+    def __sub__(self, other):
+        return self.roll() - other
+
+    def __rsub__(self, other):
+        return self.roll() - other
+
+    def __mul__(self, other):
+        return self.roll() * other
+
+    def __rmul__(self, other):
+        return self.roll() * other
+
+    def __div__(self, other):
+        return self.roll() / other
+
+    def __rdiv__(self, other):
+        return other / self.roll()
+
+    def __truediv__(self, other):
+        return self.roll() / other
+
+    def __rtruediv__(self, other):
+        return other / self.roll()
+
+    def __floordiv__(self, other):
+        return self.roll() // other
+
+    def __rfloordiv__(self, other):
+        return other // self.roll()
+
+    def __mod__(self, other):
+        return self.roll() % other
+
+    def __rmod__(self, other):
+        return other % self.roll()
+
+    def __pow__(self, other):
+        return self.roll() ** other
+
+    def __rpow__(self, other):
+        return other ** self.roll()
+
+    def roll(self, count=0):
+        '''One or more die rolls.
+        :param count: [0] Return list of ``count`` rolls
+        :return: Value of roll or list of values
+        '''
+        if count:
+            return [self._faces[random.randint(1, self._sides) - 1][1] for i in range(count)]
+        else:
+            return self._faces[random.randint(1, self._sides) - 1][1]
+
+    def iter(self, count=0):
+        '''Iterator of infinite rolls.
+        :param count: [0] Return list of ``count`` rolls
+        '''
         while True:
-            yield self.roll()
+            yield self.roll(count)
+
+    def tuple_roll(self, count=0):
+        '''One or more die rolls.
+        :param count: [0] Return list of ``count`` rolls
+        :return: (face, value) of roll or list of same
+        '''
+        if count:
+            return [self._faces[random.randint(1, self._sides) - 1] for i in range(count)]
+        else:
+            return self._faces[random.randint(1, self._sides) - 1]
+
+    def tuple_iter(self, count=0):
+        '''Iterator of infinite tuple_rolls.
+        :param count: [0] Return list of ``count`` tuples
+        '''
+        while True:
+            yield self.tuple_roll(count)
 
 
 class NumericBased(Die):
@@ -96,8 +197,8 @@ class NumericBased(Die):
     '''
     def __init__(self, name, spec):
         '''
-        @param name: Identifies dice of this type
-        @param spec: list of tuple (facetext, value, count)
+        :param name: Identifies dice of this type
+        :param spec: List of tuples (facetext, value, count)
         '''
         faces = list()
         try:
@@ -108,9 +209,8 @@ class NumericBased(Die):
                 faces.extend((str(text), value) for x in range(count))
         except (TypeError, ValueError):
             raise ValueError('Bad spec')
-        super(NumericBased, self).__init__(name, faces)
-
-        self._description = 'NumericBased die with %i faces, [%s].' % (self._sides, ','.join('"%s"=%s' % (x[0], str(x[1])) for x in self._faces))
+        super(NumericBased, self).__init__(str(name), faces)
+        self.description = 'NumericBased die with %i faces, [%s].' % (self._sides, ','.join('"%s"=%s' % (x[0], str(x[1])) for x in self._faces))
 
 
 class Standard(NumericBased):
@@ -120,7 +220,7 @@ class Standard(NumericBased):
         C{die.Standard(6)}
     '''
     def __init__(self, sides):
-        '''@param sides: number of faces die has.'''
+        ''':param sides: number of faces die has.'''
         try:
             if int(sides) <= 0:
                 raise ValueError
@@ -129,43 +229,22 @@ class Standard(NumericBased):
         name = 'd%i' % sides
         spec = [(x, x, 1) for x in range(1, sides + 1)]
         super(Standard, self).__init__(name, spec)
-        self._description = 'Numeric die with %i faces numbered 1 through %i.' % (self._sides, self._sides)
-
-    def roll(self):
-        '''@return: value, one roll'''
-        return random.randint(1, self._sides)
-
-    def rolls(self, x):
-        '''@return: values, list of 'x' rolls'''
-        return [random.randint(1, self._sides) for i in range(x)]
-
-    def tuple_roll(self):
-        '''@return: (face, value) tuple, one roll'''
-        value = random.randint(1, self._sides)
-        return (str(value), value)
-
-    def tuple_rolls(self, x):
-        '''@return: (face, value) tuple, list of 'x' rolls'''
-        l = list()
-        for i in range(x):
-            value = random.randint(1, self._sides)
-            l.append((str(value), value))
-        return l
+        self.description = 'Numeric die with %i faces numbered 1 through %i.' % (self._sides, self._sides)
 
 
 class Numeric(NumericBased):
     '''Die with non-sequential, numeric faces, possibly repeating.
 
-    Backgammon die::
+    Ex. A backgammon die::
         C{die.Numeric('backgammon', (2,4,8,16,32,64))}
     '''
     def __init__(self, name, spec):
         '''
-        @param name: Uniquely identifies dice of this type.
-        @param spec: List of numbers one per face of die.
+        :param name: Uniquely identifies dice of this type.
+        :param spec: List of numbers one per face of die.
         '''
-        super(Numeric, self).__init__(name, [(x, x, 1) for x in spec])
-        self._description = 'Numeric die with %i faces [%s].' % (self._sides, ','.join(self.faces))
+        super(Numeric, self).__init__(str(name), [(x, x, 1) for x in spec])
+        self.description = 'Numeric die with %i faces [%s].' % (self._sides, ','.join(self.faces))
 
 
 class Weird(Die):
@@ -175,11 +254,11 @@ class Weird(Die):
 
     def __init__(self, name, spec):
         '''
-        @param name: Uniquely identifies dice of this type.
-        @param spec: List of tuples - (facetext, facevalue, count)
-                      facevalue must be convertable into string but
-                      otherwise is free to get funky. count is number
-                      of faces with these text/value.
+        :param name: Uniquely identifies dice of this type.
+        :param spec: List of tuples - (facetext, facevalue, count)
+                    facevalue must be convertable into string but
+                    otherwise is free to get funky. count is number
+                    of faces with these text/value.
         '''
         faces = list()
         try:
@@ -189,8 +268,8 @@ class Weird(Die):
                 faces.extend((text, value) for x in range(count))
         except (TypeError, ValueError):
             raise ValueError('Bad spec')
-        super(Weird, self).__init__(name, faces)
-        self._description = 'Weird die with %i faces [%s].' % (
+        super(Weird, self).__init__(str(name), faces)
+        self.description = 'Weird die with %i faces [%s].' % (
                 self._sides,
                 ','.join('" % s"=%s' % (x[0], str(x[1])) for x in self._faces)
                 )

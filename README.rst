@@ -52,6 +52,14 @@ Until some docs are written have a look at ``demo.py``.
 History
 -------
 
+0.4.0
+  Backwards incompatible.
+  Operators, coercions, comparisons roll die, str() no longer does)
+
+0.3.0
+  Merged rolls() into roll(), renamed tuple_* to, added die.items property.
+  str() rolls die,
+
 0.2.0
   Updated to modern style, pep8, tests, docs, travis-ci, more unittests.
   Py3.x support.
@@ -61,6 +69,6 @@ History
 
 
 .. _pep8: http://pypi.python.org/pypi/pep8/
-.. _unittest2: http://pypi.python.org/pypi/unittest2/
 .. _nose: http://pypi.python.org/pypi/nose/
 .. _travis ci: http://travis-ci.org/#!/njharman/die
+.. _unittest2: http://pypi.python.org/pypi/unittest2/

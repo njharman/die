@@ -1,6 +1,6 @@
 __author__ = 'Norman J. Harman Jr.'
 __email__ = 'njharman@gmail.com'
-__version__ = '0.2.0'
+__version__ = '0.4.0'
 __copyright__ = '''Copyright (c) 2003-4,2012 Norman J. Harman Jr.'''
 __license__ = '''This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as published by the
@@ -33,6 +33,7 @@ Die Classes
   - L{die.NumericBased}
   - L{die.Weird}
   - L{die.Roll}
+  - L{die.FuncRoll}
 
 Support Classes
 ---------------
@@ -41,5 +42,5 @@ Support Classes
        'license': __license__, 'email': __email__, 'author': __author__}
 
 from .die import NumericBased, Standard, Numeric, Weird
-from .roll import Roll
+from .roll import Roll, FuncRoll
 from .stats import Statistic

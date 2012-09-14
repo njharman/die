@@ -9,7 +9,7 @@ class RollTestor(unittest.TestCase):
     def test_init(self):
         r = die.roll.Roll()
         r = die.roll.Roll(self.dice)
-        self.assertEqual([str(s) for s in self.dice], [str(s) for s in r.dice])
+        self.assertEqual([repr(s) for s in self.dice], [repr(s) for s in r.dice])
         r.description
 
     def test_odds(self):
@@ -42,20 +42,17 @@ class RollTestor(unittest.TestCase):
         r.remove_die(die.die.Standard(6))
         self.assertEqual(3, len(r.dice))
 
-    def test_roll_values(self):
+    def test_roll(self):
         r = die.roll.Roll(self.dice)
-        r.roll_values()
+        r.roll()
+        r.roll(100)
+        r.roll(func=min)
+        self.assertTrue(2, len(r.roll(func=lambda x: x)))
 
-    def test_roll_total(self):
+    def test_iter(self):
         r = die.roll.Roll(self.dice)
-        r.roll_total()
-
-    def test_roll_totalX(self):
-        r = die.roll.Roll(self.dice)
-        r.roll_totalX(100)
-
-    def test_roll_totalGenerator(self):
-        r = die.roll.Roll(self.dice)
-        gen = r.roll_totalGenerator()
+        gen_one = r.iter()
+        gen_seq = r.iter(2)
         for i in range(100):
-            gen()
+            self.assertTrue(2 <= gen_one.next() <= 12)
+            self.assertEqual(2, len(gen_seq.next()))
