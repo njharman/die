@@ -3,7 +3,7 @@ import unittest
 import re
 import os
 import sys
-import cStringIO as StringIO
+from io import StringIO
 from distutils.version import LooseVersion
 
 import pep8

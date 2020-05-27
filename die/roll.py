@@ -33,6 +33,9 @@ class Roll(object):
     def __str__(self):
         return self.name or self.description
 
+    def __call__(self, *args, **kwargs):
+        return self.roll(*args, **kwargs)
+
     @property
     def description(self):
         dice = defaultdict(int)

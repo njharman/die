@@ -1,0 +1,14 @@
+
+
+
+def do_roll(roll):
+    '''Given simple roll forumula [40+]2d6 return integer.'''
+    if '+' in roll:
+        result, roll = roll.split('+')
+        result = int(result)
+    else:
+        result = 0
+    count, die = [int(x) for x in roll.split('d')]
+    for i in range(count):
+        result += random.randint(1, die)
+    return result
