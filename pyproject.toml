@@ -1,0 +1,108 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "die"
+dynamic = ["version"]
+description = "Library for simulating dice, dice rolls, and stats on dice."
+readme = "README.rst"
+requires-python = ">=3.14"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Norman J. Harman Jr.", email = "njharman@gmail.com" }]
+keywords = ["dice", "rpg", "tabletop", "board-game", "simulation", "probability", "random"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Games/Entertainment :: Board Games",
+  "Topic :: Games/Entertainment :: Role-Playing",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/njharman/die"
+Repository = "https://github.com/njharman/die"
+Issues = "https://github.com/njharman/die/issues"
+
+[tool.hatch.version]
+path = "src/die/__init__.py"
+
+[dependency-groups]
+dev = ["pre-commit>=4", "pytest>=8", "pytest-cov>=6", "ruff>=0.6"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --cov=die --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["die"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py314"
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # Unused import
+"tests/*" = ["S101"]  # S101 (asserts are how pytest works!)
+
+[tool.ruff.lint]
+ignore = [
+  "C408", # Unnecessary dict/list call
+  "E731", # I'll assign lambda expression if I want to, and I do!
+  "SIM108", # No like ternary operator
+  "S311", # Standard pseudo-random generators are not suitable for security/cryptographic purposes
+  "C416", # Unnecessary list comprehension
+  "TRY003", # Avoid  specifying long messages outside the exception class
+]
+select = [
+  #"ARG", # flake8 unused arguments (not really helpful, unused func args are common and ok)
+  #"D", # pydocstyle (too much)
+  #"N", # pep8-naming (too opinionated)
+  #"NPY", # numpy
+  #"PD", # pandas
+  #"PL", # Full Pylint (too much)
+  #"PLR", # Pylint refactor (too much/too opinionated)
+  "A", # flake8-builtins
+  "ASYNC", # https://docs.astral.sh/ruff/rules/#flake8-async-async
+  "B", # flake8-bugbear
+  "BLE", # flake8-blind-except
+  "C4", # unnecessary comprehensions, map()
+  "COM", # flake8-commas
+  "DTZ", # flake8-datetimez
+  "E", # pycodestyle
+  "ERA", # No commented out code
+  "EXE", # flake8-executable
+  "F", # pyflakes
+  "FLY", # flynt
+  "G", # flake8-logging-format
+  "I", # isort
+  "ICN", # https://github.com/joaopalmeiro/flake8-import-conventions
+  "ISC", # https://pypi.org/project/flake8-implicit-str-concat/
+  "LOG", # flake8-logging
+  "PERF", # perflint
+  "PIE", # https://pypi.org/project/flake8-pie/
+  "PLC", # Pylint conventions
+  "PLE", # Pylint error
+  "PLW", # Pylint warnings
+  "PT", # https://pypi.org/project/flake8-pytest-style/
+  "PTH", # flake8 use pathlib
+  "RET", # https://pypi.org/project/flake8-return/
+  "RUF", # Ruff rules
+  "S", # https://docs.astral.sh/ruff/rules/#flake8-bandit-s
+  "SIM", # https://pypi.org/project/flake8-simplify/
+  "T", # flake8-debugger
+  "TRY", # tryceratops
+  "UP", # pyupgrade
+  "W", # pycodestyle
+]

@@ -1,5 +1,0 @@
-include setup.py
-include README.rst
-include LICENSE
-include demo.py
-recursive-include doc *.css *.html

@@ -1,56 +1,61 @@
 die
 ===
-.. image:: https://secure.travis-ci.org/njharman/die.png
-   :target: https://secure.travis-ci.org/njharman/die
-   :alt: Build status
-   :scale: 200%
 
 About
 -----
-die is a dice library, for RPG and Board Game games, tools, whatever.
+die is a dice library, for RPG and Board Game games, experiments, whatever.
 
-Emphasizes flexibility over speed.
+Speed / efficiency are not priorities.
 
 
 Installing
 ----------
-via source::
+via uv::
 
-    python setup.py install
+    uv add die
 
 via pip::
 
-    pip install --upgrade die
-
-
-Testing
--------
-unittest prerequisites:
-    - pep8_
-    - unittest2_ (only Python < 2.7)
-
-Author uses nose_ to run unittests, YMMV. ::
-
-    pip install --upgrade pep8 --use-mirrors
-    nosetests
-
-
-Unittests run against the following Python versions using `Travis CI`_:
-
-  - 2.5 requires unittest2_
-  - 2.6 requires unittest2_
-  - 2.7
-  - 3.1
-  - 3.2
+    pip install die
 
 
 Using
 -----
-Until some docs are written have a look at ``demo.py``.
+::
+
+    import die
+
+    d6 = die.Standard(6)
+    d6.roll()          # -> single roll, e.g. 4
+    d6 + 3             # -> roll + 3
+
+    roll = die.Roll((die.Standard(6), die.Standard(6)))
+    roll.roll()        # -> sum of both dice
+
+See ``examples/demo.py`` for a fuller walk through.
+
+
+Testing
+-------
+
+    ruff check .
+    pytest
+
+pre-commit_ runs ``ruff check`` and ``ruff format`` automatically before each commit::
+
+    pre-commit install
+    pre-commit run --all-files
 
 
 History
 -------
+
+1.0.0
+  No API changes.
+  Modern packaging: MIT license, python 3.14.
+  uv with pyproject.toml/hatchling, ruff, pytest.
+  pre-commit hooks.
+  GitHub Actions CI.
 
 0.4.0
   Backwards incompatible.
@@ -68,7 +73,4 @@ History
   Initial release.
 
 
-.. _pep8: http://pypi.python.org/pypi/pep8/
-.. _nose: http://pypi.python.org/pypi/nose/
-.. _travis ci: http://travis-ci.org/#!/njharman/die
-.. _unittest2: http://pypi.python.org/pypi/unittest2/
+.. _pre-commit: https://pre-commit.com/

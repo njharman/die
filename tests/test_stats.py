@@ -1,10 +1,8 @@
-import unittest
-
 import die
 import die.stats
 
 
-class StatsTestor(unittest.TestCase):
+class TestStats:
     def test_minimal(self):
         roll = die.Roll((die.Standard(6),))
         s = die.stats.Statistic(roll)
