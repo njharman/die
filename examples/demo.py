@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import random
 import sys
 
 import die
@@ -24,8 +25,8 @@ def print_odds(roll):
 
 
 def print_summary(roll, count):
-    stat = die.stats.Statistic(roll)
-    stat.do_run(count)
+    stat = die.Statistic(roll)
+    stat.run(count)
     print_args(f'{count:<4} "{roll}s"')
     for slot in stat.bucket:
         print_args(
@@ -41,8 +42,8 @@ Fudge = die.NumericBased('dFudge', (('+', 1, 2), ('-', -1, 2), (' ', 0, 2)))
 FudgePlus = die.NumericBased('dFudge+', (('+', 1, 4), (' ', 0, 2)))
 FudgeMinus = die.NumericBased('dFudge-', (('-', -1, 4), (' ', 0, 2)))
 d6 = die.Standard(6)
-dWeird = die.Weird(
-    'dWeird',
+dSymbolic = die.Symbolic(
+    'dSymbolic',
     (
         ('bark', 'dog', 2),
         ('meow', 'cat', 1),
@@ -54,10 +55,25 @@ print_args(f'  {Fudge} a {Fudge.description}')
 print_args(f'  {FudgePlus} a {FudgePlus.description}')
 print_args(f'  {FudgeMinus} a {FudgeMinus.description}')
 print_args(f'  {d6} faces {d6.faces} - values {d6.values}')
-print_args(f'  {dWeird} faces {dWeird.faces} - values {dWeird.values}')
+print_args(f'  {dSymbolic} faces {dSymbolic.faces} - values {dSymbolic.values}')
 print_args()
 
 print_args('Different methods to roll Die.')
+print_args(f'  single roll {d6.roll()}, five rolls {d6.rolls(5)}')
+print_args(f'  (face, value) roll {d6.roll_item()}')
+print_args()
+
+print_args('Reproducible rolls via seeded rng.')
+seeded = die.Standard(6, rng=random.Random(42))
+print_args(f'  {seeded} with random.Random(42) - {seeded.rolls(5)}')
+# Assigning die.Die.rng affects every die at once, even ones already created
+# (like d6 above), except dice given their own rng.
+die.Die.rng = random.Random(42)
+first = (d6.rolls(5), percentile.rolls(5))
+die.Die.rng = random.Random(42)
+second = (d6.rolls(5), percentile.rolls(5))
+print_args(f'  module-wide die.Die.rng, {d6} and {percentile} repeat: {first == second} - {first}')
+die.Die.rng = random
 print_args()
 
 print_args('Die may be combined into Roll objects.')
@@ -73,10 +89,20 @@ DnDStatRoll = die.Roll(
 twod6 = die.Roll()
 for _ in range(2):
     twod6.add_die(d6)
+# Rolls apply func (default sum) to the individual die rolls.
+best_of_two = die.Roll((d6, d6), name='best of 2d6', func=max)
 
 print_args(f'  {FudgeRoll} - {FudgeRoll.roll()} ')
-rolls = ', '.join(str(i) for i in DnDStatRoll.roll(6))
+rolls = ', '.join(str(i) for i in DnDStatRoll.rolls(6))
 print_args(f'  {DnDStatRoll} six times - {rolls} ')
+print_args(f'  {best_of_two} - {best_of_two.roll()} ')
+print_args()
+
+print_args('Rolls may also be built from dice notation.')
+attack = die.parse('2d6+3')
+print_args(f'  {attack} - {attack.roll()} ')
+fudge4 = die.parse('4dF')
+print_args(f'  {fudge4} - {fudge4.roll()} ')
 print_args()
 
 # Some statistics.

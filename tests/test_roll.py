@@ -1,3 +1,5 @@
+import pytest
+
 import die.die
 import die.roll
 
@@ -8,12 +10,17 @@ class TestRoll:
     def test_init(self):
         r = die.roll.Roll()
         r = die.roll.Roll(self.dice)
-        assert [repr(s) for s in r.dice] == [repr(s) for s in self.dice]
+        assert r.dice == self.dice
         assert r.description == '2d6 Roll'
 
     def test_init_name(self):
         r = die.roll.Roll(self.dice, name='Attack Roll')
         assert r.name == 'Attack Roll'
+
+    def test_name_read_only(self):
+        r = die.roll.Roll(self.dice, name='Attack Roll')
+        with pytest.raises(AttributeError):
+            r.name = 'Defense Roll'
 
     def test_str_uses_name_when_set(self):
         r = die.roll.Roll(self.dice, name='Attack Roll')
@@ -26,7 +33,6 @@ class TestRoll:
     def test_call_rolls(self):
         r = die.roll.Roll(self.dice)
         assert 2 <= r() <= 12
-        assert len(r(func=lambda x: x)) == 2
 
     def test_description_groups_nonadjacent_matching_dice(self):
         r = die.roll.Roll([die.die.Standard(6), die.die.Standard(8), die.die.Standard(6)])
@@ -36,10 +42,9 @@ class TestRoll:
         r = die.roll.Roll()
         assert r.description == ' Roll'
 
-    def test_dice_property_returns_copy(self):
+    def test_dice_property_returns_tuple(self):
         r = die.roll.Roll(self.dice)
-        result = r.dice
-        result.append(die.die.Standard(20))
+        assert isinstance(r.dice, tuple)
         assert len(r.dice) == 2
 
     def test_odds(self):
@@ -59,6 +64,13 @@ class TestRoll:
         ]
         assert r.odds == proper
 
+    def test_odds_named_fields(self):
+        r = die.roll.Roll(self.dice)
+        first = r.odds[0]
+        assert first.value == 2
+        assert first.ways == 1
+        assert first.probability == 1 / 36
+
     def test_odds_is_cached(self):
         r = die.roll.Roll(self.dice)
         first = r.odds
@@ -69,9 +81,17 @@ class TestRoll:
         r = die.roll.Roll([die.die.Standard(4)])
         assert r.odds == [(1, 1, 0.25), (2, 1, 0.25), (3, 1, 0.25), (4, 1, 0.25)]
 
+    def test_odds_empty_roll(self):
+        assert die.roll.Roll().odds == []
+
+    def test_odds_uses_func(self):
+        r = die.roll.Roll(self.dice, func=max)
+        proper = [(v, 2 * v - 1, (2 * v - 1) / 36) for v in range(1, 7)]
+        assert r.odds == proper
+
     def test_odds_non_summable(self):
-        coin = die.die.Weird('coin', (('H', 'H', 1), ('T', 'T', 1)))
-        r = die.roll.Roll([coin, coin])
+        coin = die.die.Symbolic('coin', (('H', 'H', 1), ('T', 'T', 1)))
+        r = die.roll.Roll([coin, coin], func=''.join)
         assert r.odds == [
             ('HH', 1, 0.25),
             ('HT', 1, 0.25),
@@ -82,7 +102,7 @@ class TestRoll:
     def test_summable(self):
         r = die.roll.Roll(self.dice)
         assert r.summable
-        r = die.roll.Roll([die.die.Standard(6), die.die.Weird('Al', (('a', 'a', 1),))])
+        r = die.roll.Roll([die.die.Standard(6), die.die.Symbolic('Al', (('a', 'a', 1),))])
         assert not r.summable
 
     def test_add_die_remove_die(self):
@@ -107,9 +127,10 @@ class TestRoll:
         r.remove_die(d6)
         assert r.odds == [(x, 1, 0.16666666666666666) for x in range(1, 7)]
 
-    def test_remove_die_not_present_is_noop(self):
+    def test_remove_die_not_present_raises(self):
         r = die.roll.Roll([die.die.Standard(6)])
-        r.remove_die(die.die.Standard(8))
+        with pytest.raises(ValueError, match='not in list'):
+            r.remove_die(die.die.Standard(8))
         assert len(r.dice) == 1
 
     def test_remove_die_removes_only_first_match(self):
@@ -120,103 +141,26 @@ class TestRoll:
 
     def test_roll(self):
         r = die.roll.Roll(self.dice)
-        r.roll()
-        r.roll(100)
-        r.roll(func=min)
-        assert len(r.roll(func=lambda x: x)) == 2
+        assert 2 <= r.roll() <= 12
 
-    def test_roll_count_returns_list_of_sums(self):
+    def test_roll_applies_func(self):
+        r = die.roll.Roll(self.dice, func=max)
+        for _ in range(20):
+            assert 1 <= r.roll() <= 6
+        r = die.roll.Roll(self.dice, func=lambda values: values)
+        assert len(r.roll()) == 2
+
+    def test_rolls_returns_list(self):
         r = die.roll.Roll(self.dice)
-        result = r.roll(5)
+        result = r.rolls(5)
         assert len(result) == 5
         assert all(2 <= x <= 12 for x in result)
+
+    def test_rolls_applies_func(self):
+        r = die.roll.Roll(self.dice, func=min)
+        assert all(1 <= x <= 6 for x in r.rolls(5))
 
     def test_roll_empty_dice(self):
         r = die.roll.Roll()
         assert r.roll() == 0
-        assert r.roll(3) == [0, 0, 0]
-
-    def test_x_rolls_default(self):
-        r = die.roll.Roll(self.dice)
-        results = list(r.x_rolls(5))
-        assert len(results) == 5
-        assert all(2 <= x <= 12 for x in results)
-
-    def test_x_rolls_with_count(self):
-        r = die.roll.Roll(self.dice)
-        results = list(r.x_rolls(3, count=2))
-        assert len(results) == 3
-        assert all(len(x) == 2 for x in results)
-
-    def test_x_rolls_with_func(self):
-        r = die.roll.Roll(self.dice)
-        results = list(r.x_rolls(5, func=min))
-        assert all(1 <= x <= 6 for x in results)
-
-    def test_iter(self):
-        r = die.roll.Roll(self.dice)
-        gen_one = r.iter()
-        gen_seq = r.iter(2)
-        for _ in range(100):
-            assert 2 <= next(gen_one) <= 12
-            assert len(next(gen_seq)) == 2
-
-    def test_iter_with_func(self):
-        r = die.roll.Roll(self.dice)
-        gen = r.iter(func=max)
-        for _ in range(20):
-            assert 1 <= next(gen) <= 6
-
-
-class TestFuncRoll:
-    dice = (die.die.Standard(6), die.die.Standard(6))
-
-    def test_init(self):
-        r = die.roll.FuncRoll(max, self.dice, name='Best of Two')
-        assert r.name == 'Best of Two'
-        assert [repr(s) for s in r.dice] == [repr(s) for s in self.dice]
-
-    def test_roll_applies_func(self):
-        r = die.roll.FuncRoll(max, self.dice)
-        for _ in range(20):
-            assert 1 <= r.roll() <= 6
-
-    def test_roll_count_returns_list(self):
-        r = die.roll.FuncRoll(max, self.dice)
-        result = r.roll(5)
-        assert len(result) == 5
-        assert all(1 <= x <= 6 for x in result)
-
-    def test_call_delegates_to_roll(self):
-        r = die.roll.FuncRoll(max, self.dice)
-        assert 1 <= r() <= 6
-
-    def test_x_rolls(self):
-        r = die.roll.FuncRoll(min, self.dice)
-        results = list(r.x_rolls(5))
-        assert len(results) == 5
-        assert all(1 <= x <= 6 for x in results)
-
-    def test_x_rolls_with_count(self):
-        r = die.roll.FuncRoll(min, self.dice)
-        results = list(r.x_rolls(3, count=2))
-        assert len(results) == 3
-        assert all(len(x) == 2 for x in results)
-
-    def test_iter(self):
-        r = die.roll.FuncRoll(max, self.dice)
-        gen = r.iter()
-        for _ in range(20):
-            assert 1 <= next(gen) <= 6
-
-    def test_iter_with_count(self):
-        r = die.roll.FuncRoll(max, self.dice)
-        gen = r.iter(count=2)
-        for _ in range(20):
-            assert len(next(gen)) == 2
-
-    def test_inherits_roll_properties(self):
-        r = die.roll.FuncRoll(max, self.dice)
-        assert r.summable
-        assert r.description == '2d6 Roll'
-        assert len(r.odds) == 11
+        assert r.rolls(3) == [0, 0, 0]

@@ -1,83 +1,63 @@
+from collections import Counter
+
+
 class Statistic:
     """Roll lots of dice, calc statistics.
 
-    ``sum``, ``avg``, and ``average`` are set by do_sum/do_bucket/do_run
-    and are read only; treat them as results, not inputs.
+    ``run()`` must be called before accessing ``sum``, ``avg``, or ``bucket``.
     """
 
     def __init__(self, roll):
         """
         :param roll: ``Roll`` instance.
+        :raises ValueError: If roll is not summable.
         """
-        self.roll = roll
-        self._bucket = dict()
-        self.sum = 0
-        self.avg = 0
+        if not roll.summable:
+            raise ValueError('Roll is not summable')
+        self._roll = roll
+        self._bucket = None
+        self._sum = None
+        self._avg = None
+
+    @property
+    def roll(self):
+        """``Roll`` statistics are calculated on."""
+        return self._roll
+
+    @property
+    def sum(self):
+        """Total of all rolls made by ``run()``."""
+        self._check_ran()
+        return self._sum
+
+    @property
+    def avg(self):
+        """Average roll made by ``run()``."""
+        self._check_ran()
+        return self._avg
 
     @property
     def bucket(self):
-        result = list(self._bucket.items())
-        result.sort()
-        return result
+        """List of (roll value, times rolled) tuples, sorted by value."""
+        self._check_ran()
+        return sorted(self._bucket.items())
 
-    @property
-    def average(self):
-        """Alias for ``avg``."""
-        return self.avg
+    def _check_ran(self):
+        if self._bucket is None:
+            raise RuntimeError('run() has not been called')
 
-    def _check(self, count):
-        """Validate common preconditions shared by do_sum/do_bucket/do_run.
-        :raises ValueError: If roll is not summable or count < 1
-        """
-        if not self.roll.summable:
-            raise ValueError('Roll is not summable')
-        if count < 1:
-            raise ValueError('count must be >= 1')
+    def run(self, count=1):
+        """Roll ``count`` times, calculate statistics.
 
-    def do_sum(self, count=1):
-        """Set self.sum, self.avg and return sum of dice rolled, count times.
-        :param count: Number of rolls to make
-        :return: Total sum of all rolls
-        :raises ValueError: If roll is not summable or count < 1
-        """
-        self._check(count)
-        self.sum = sum(self.roll.roll(count))
-        self.avg = self.sum / count
-        return self.sum
-
-    def do_bucket(self, count=1):
-        """Set self.bucket and return results.
-        :param count: Number of rolls to make
-        :return: List of tuples (total of roll, times it was rolled)
-        :raises ValueError: If roll is not summable or count < 1
-        """
-        self._check(count)
-        self._bucket = dict()
-        for roll in self.roll.roll(count):
-            self._bucket[roll] = self._bucket.get(roll, 0) + 1
-        return self.bucket
-
-    def do_run(self, count=1):
-        """Roll count dice, store results. Does all stats so might be slower
-        than specific doFoo methods. But, it is proly faster than running
-        each of those separately to get same stats.
-
-        Sets the following properties:
-          - stats.bucket
-          - stats.sum
-          - stats.avg
+        Sets ``sum``, ``avg``, ``bucket``.
 
         :param count: Number of rolls to make.
-        :return: Total sum of all rolls
-        :raises ValueError: If roll is not summable or count < 1
+        :return: Total sum of all rolls.
+        :raises ValueError: If count < 1.
         """
-        self._check(count)
-        h = dict()
-        total = 0
-        for roll in self.roll.x_rolls(count):
-            total += roll
-            h[roll] = h.get(roll, 0) + 1
-        self._bucket = h
-        self.sum = total
-        self.avg = total / count
-        return self.sum
+        if count < 1:
+            raise ValueError('count must be >= 1')
+        self._bucket = Counter(self._roll.rolls(count))
+        self._sum = sum(value * times for value, times in self._bucket.items())
+        self._avg = self._sum / count
+        return self._sum

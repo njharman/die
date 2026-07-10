@@ -26,6 +26,7 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/njharman/die"
 Repository = "https://github.com/njharman/die"
+Changelog = "https://github.com/njharman/die/blob/main/CHANGELOG.rst"
 Issues = "https://github.com/njharman/die/issues"
 
 [tool.hatch.version]
