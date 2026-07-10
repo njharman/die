@@ -63,6 +63,7 @@ quote-style = "single"
 ignore = [
   "C408", # Unnecessary dict/list call
   "C416", # Unnecessary list comprehension
+  "COM819", # Trailing is da bomb
   "E731", # I'll assign lambda expression if I want to, and I do!
   "S311", # Standard pseudo-random generators are not suitable for security/cryptographic purposes
   "SIM108", # No like ternary operator
