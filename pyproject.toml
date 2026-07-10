@@ -54,15 +54,18 @@ quote-style = "single"
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Unused import
-"tests/*" = ["S101"]  # S101 (asserts are how pytest works!)
+"tests/*" = [
+  "S101", # S101 (asserts are how pytest works!)
+  "SIM",
+  ]
 
 [tool.ruff.lint]
 ignore = [
   "C408", # Unnecessary dict/list call
-  "E731", # I'll assign lambda expression if I want to, and I do!
-  "SIM108", # No like ternary operator
-  "S311", # Standard pseudo-random generators are not suitable for security/cryptographic purposes
   "C416", # Unnecessary list comprehension
+  "E731", # I'll assign lambda expression if I want to, and I do!
+  "S311", # Standard pseudo-random generators are not suitable for security/cryptographic purposes
+  "SIM108", # No like ternary operator
   "TRY003", # Avoid  specifying long messages outside the exception class
 ]
 select = [

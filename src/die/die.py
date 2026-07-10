@@ -45,7 +45,7 @@ class Die:
 
         try:
             self.name = _clean_name(name)
-        except TypeError, ValueError:
+        except AttributeError, TypeError, ValueError:
             raise ValueError('Invalid name') from None
         # Subclasses are expected to set description.
         # Not passed as parameter because it's likely to dynamically set based on _sides, _faces.
@@ -186,6 +186,8 @@ class NumericBased(Die):
         :param name: Identifies dice of this type
         :param spec: List of tuples (facetext, value, count)
         """
+        if name is None:
+            raise ValueError('Invalid name')
 
         def _check_face(text, value, count):
             if count < 1:
@@ -243,7 +245,13 @@ class Numeric(NumericBased):
         :param name: Uniquely identifies dice of this type.
         :param spec: List of numbers one per face of die.
         """
-        super().__init__(str(name), [(x, x, 1) for x in spec])
+        if name is None:
+            raise ValueError('Invalid name')
+        try:
+            faces = [(x, x, 1) for x in spec]
+        except TypeError:
+            raise ValueError('Bad spec') from None
+        super().__init__(str(name), faces)
         self.description = f'Numeric die with {self._sides} faces [{",".join(self.faces)}].'
 
 
@@ -266,6 +274,8 @@ class Weird(Die):
                 raise ValueError
             return count
 
+        if name is None:
+            raise ValueError('Invalid name')
         faces = list()
         try:
             for text, value, count in spec:
