@@ -46,8 +46,8 @@ branch = true
 exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 
 [tool.ruff]
-line-length = 120
 target-version = "py314"
+line-length = 120
 
 [tool.ruff.format]
 quote-style = "single"

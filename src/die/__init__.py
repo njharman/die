@@ -18,7 +18,7 @@ Support Classes
   - die.stats.Statistic
 """
 
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 
 from .die import Numeric, NumericBased, Standard, Weird
 from .roll import FuncRoll, Roll

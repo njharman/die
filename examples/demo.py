@@ -31,7 +31,7 @@ def print_summary(roll, count):
         print_args(
             f'{slot[0]:>5} -> {slot[1]}',
         )
-        if slot[0] == stat.avr:
+        if slot[0] == stat.avg:
             print_args(' "average"')
 
 

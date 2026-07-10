@@ -60,6 +60,7 @@ class Roll:
         """
         if die in self._dice:
             self._dice.remove(die)
+            self._odds = None
 
     def roll(self, count=0, func=sum):
         """Roll some dice!

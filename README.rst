@@ -50,6 +50,14 @@ pre-commit_ runs ``ruff check`` and ``ruff format`` automatically before each co
 History
 -------
 
+1.1.0
+  100% test coverage (line+branch) across all modules.
+  Backwards incompatible Changes:
+    - Statistic.avr renamed to Statistic.avg (Statistic.average added as alias).
+    - Statistic.do_sum/do_bucket now raise ValueError for non-summable rolls or count < 1, matching do_run.
+  Bugs:
+    - Roll.remove_die wasn't invalidating the cached odds (stale odds after removing a die).
+
 1.0.0
   No API changes.
   Modern packaging: MIT license, python 3.14.
