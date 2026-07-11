@@ -1,4 +1,4 @@
-"""Die classes: base, standard, numeric, and symbolic."""
+"""Die classes: base, standard, numeric, exploding, and symbolic."""
 
 import numbers
 import random
@@ -115,7 +115,7 @@ class Die:
 
     def __rsub__(self, other):
         """Rolls die."""
-        return self.roll() - other
+        return other - self.roll()
 
     def __mul__(self, other):
         """Rolls die."""
@@ -161,7 +161,7 @@ class Die:
 
     def __eq__(self, other):
         if not isinstance(other, Die):
-            return NotImplemented
+            return False
         return self._faces == other._faces
 
     @property
@@ -299,6 +299,102 @@ class Standard(Numeric):
             raise ValueError('Bad number of sides') from None
         super().__init__(f'd{sides}', range(1, sides + 1), rng)
         self._description = f'Numeric die with {self.sides} faces numbered 1 through {self.sides}.'
+
+
+class ExplodingDie(Standard):
+    """Die that explodes: rolling into the explode range rolls ``explode_to`` again and adds, recursing.
+
+    A d6 that explodes on 6, rolling itself again::
+        die.ExplodingDie(6)
+
+    Hackmaster style "math corrected" dice subtract one from every rolled-again value, and may explode down to a smaller
+        die::
+        die.ExplodingDie(20, explode_to=die.ExplodingDie(6, math_correct=True), math_correct=True)
+
+    Rolemaster style double-ended (open-ended) d100 explodes up on 96-100 (add) and down on 1-5 (subtract),
+        recursively::
+        die.ExplodingDie(100, explode_range=5, explode_range_low=5)
+
+    :param sides: Number of faces on die, integral and > 0.
+    :param explode_range: [1] Explode when roll is > (sides - explode_range).
+    :param explode_to: [None] ``Die`` rolled (recursively) again on explosion. ``None`` means roll this die again.
+    :param math_correct: [False] Subtract 1 from every rolled-again (not initial) value. Incompatible with
+        ``explode_range_low``.
+    :param explode_range_low: [0] Explode (subtracting) when roll is <= explode_range_low. ``0`` disables low-end
+        explosion.
+    :param explode_to_low: [None] ``Die`` rolled (recursively) again, and subtracted, on low-end explosion. ``None``
+        means roll this die again.
+    :param rng: Source of randomness for this die only, overriding class-wide ``Die.rng``.
+    :raises ValueError: If sides isn't an integer > 0; explode_to or explode_to_low isn't a Die or None;
+        explode_range >= sides; explode_range_low < 0; explode_range and explode_range_low combined >= sides; or
+        math_correct is True with explode_range_low > 0.
+    """
+
+    def __init__(
+        self,
+        sides,
+        explode_range=1,
+        explode_to=None,
+        math_correct=False,
+        explode_range_low=0,
+        explode_to_low=None,
+        rng=None,
+    ):
+        super().__init__(sides, rng)
+        if explode_range >= self.sides:
+            raise ValueError(f'explode_range must be < sides, got {explode_range} >= {self.sides}')
+        if explode_range_low < 0:
+            raise ValueError(f'explode_range_low must be >= 0, got {explode_range_low}')
+        if explode_range + explode_range_low >= self.sides:
+            raise ValueError(
+                'explode_range and explode_range_low combined must be < sides, got '
+                f'{explode_range} + {explode_range_low} >= {self.sides}',
+            )
+        if math_correct and explode_range_low > 0:
+            raise ValueError('math_correct is not supported with low-end (double-ended) explosion')
+        if explode_to is not None and not isinstance(explode_to, Die):
+            raise ValueError(f'explode_to must be a Die instance or None, got {explode_to!r}')
+        if explode_to_low is not None and not isinstance(explode_to_low, Die):
+            raise ValueError(f'explode_to_low must be a Die instance or None, got {explode_to_low!r}')
+        if explode_to is None:
+            explode_to = self
+        if explode_to_low is None:
+            explode_to_low = self
+        self._explode_range = explode_range
+        self._explode_to = explode_to
+        self._math_correct = math_correct
+        self._explode_range_low = explode_range_low
+        self._explode_to_low = explode_to_low
+        if math_correct:
+            self._name = f'd{self.sides}p'
+            correction = ' (math corrected)'
+        else:
+            self._name = f'd{self.sides}x'
+            correction = ''
+        self._description = (
+            f'Exploding numeric die, {self.sides} faces numbered 1 through {self.sides}, '
+            f'explodes past {self.sides - explode_range} rolling {explode_to}{correction}'
+        )
+        if explode_range_low > 0:
+            self._description += (
+                f', and explodes at or below {explode_range_low} subtracting a roll of {explode_to_low}'
+            )
+        self._description += '.'
+
+    def roll(self):
+        """Roll die; if roll is in the explode range, roll ``explode_to``/``explode_to_low`` again and add/subtract.
+
+        :return: Sum (or difference, on low-end explosion) of the initial roll and any explosions.
+        """
+        value = self.rng.choice(self._faces)[1]
+        if value <= self._explode_range_low:
+            return value - self._explode_to_low.roll()
+        if value + self._explode_range <= self.sides:
+            return value
+        extra = self._explode_to.roll()
+        if self._math_correct:
+            extra -= 1
+        return value + extra
 
 
 class Symbolic(Die):

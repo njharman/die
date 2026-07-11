@@ -20,10 +20,10 @@ die.notation
 .. automodule:: die.notation
    :members:
 
-die.roll
---------
+die.rolls
+---------
 
-.. automodule:: die.roll
+.. automodule:: die.rolls
    :members:
 
 die.stats

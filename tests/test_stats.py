@@ -6,12 +6,12 @@ import die.stats
 
 class FakeRoll:
     """Test double satisfying the interface Statistic needs from a Roll:
-    ``summable`` and ``rolls(count)``. Lets bucket/sum aggregation be
+    ``numeric`` and ``rolls(count)``. Lets bucket/sum aggregation be
     asserted against fixed values instead of real dice randomness.
     """
 
-    def __init__(self, rolls, summable=True):
-        self.summable = summable
+    def __init__(self, rolls, numeric=True):
+        self.numeric = numeric
         self._rolls = list(rolls)
 
     def rolls(self, count):
@@ -65,9 +65,9 @@ class TestStatistic:
         assert s.sum == 10
         assert s.avg == 5.0
 
-    def test_not_summable_roll_raises(self):
+    def test_not_numeric_roll_raises(self):
         coin = die.Symbolic('coin', (('H', 'H', 1), ('T', 'T', 1)))
-        with pytest.raises(ValueError, match='not summable'):
+        with pytest.raises(ValueError, match='not numeric'):
             die.stats.Statistic(die.Roll((coin,)))
 
     def test_run_count_zero_raises(self):

@@ -1,6 +1,28 @@
 Changelog
 =========
 
+2.1.0
+  Backwards incompatible changes:
+    - Module ``die.roll`` renamed ``die.rolls``, freeing the name for the new ``die.roll()``
+      function. Only direct submodule imports are affected; ``die.Roll`` is unchanged.
+    - ``Die``/``Roll`` ``__eq__`` returns ``False`` (not ``NotImplemented``) for non-``Die``/non-``Roll``
+      comparisons, so ``other.__eq__`` is never tried as a fallback.
+    - Cut ``Roll.summable``, redundant with ``Roll.numeric`` (identical behavior); use ``numeric`` instead.
+  New functionality:
+    - ``ExplodingDie``: rolls again (and adds) when landing in the explode range; supports
+      Hackmaster style ``math_correct`` and Rolemaster style double-ended explosion
+      (``explode_range_low``).
+    - Ready-made dice constants (``d1``-``d10000``, exploding ``dNx``, penetrating ``dNp``,
+      ``d100rm``, ``coin``, ``dFudge``) exported from ``die``.
+    - ``d0`` null die, always rolls 0.
+    - ``Roll.from_notation()`` builds a ``Roll`` from dice notation.
+    - ``die.roll(notation)`` parses dice notation and rolls it once.
+    - ``Roll`` interface parity with ``Die``: ``int()``/``float()``/``index``, comparisons, and
+      arithmetic operators all roll the dice; ``==``/``!=`` compare dice and func without
+      rolling; ``repr()``; ``numeric`` property.
+  Bug Fixes:
+    - Reflected subtraction was backwards: ``7 - d6`` computed ``roll - 7`` instead of ``7 - roll``.
+
 2.0.0
   Backwards incompatible changes:
     - Weird die renamed to Symbolic.

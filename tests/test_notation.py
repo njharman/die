@@ -92,3 +92,18 @@ class TestParse:
         for notation in bad:
             with pytest.raises(ValueError, match='Bad dice notation'):
                 die.parse(notation)
+
+
+class TestRoll:
+    def test_rolls_notation(self):
+        for _ in range(20):
+            assert 5 <= die.roll('3d6+2') <= 20
+
+    def test_rng(self):
+        a = die.roll('3d6', rng=random.Random(11))
+        b = die.parse('3d6', rng=random.Random(11)).roll()
+        assert a == b
+
+    def test_bad_notation(self):
+        with pytest.raises(ValueError, match='Bad dice notation'):
+            die.roll('foo')

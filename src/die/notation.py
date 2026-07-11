@@ -3,7 +3,7 @@
 import re
 
 from .die import Numeric, NumericBased, Standard
-from .roll import Roll
+from .rolls import Roll
 
 _term = re.compile(r'\s*([+-])?\s*(?:(\d*)[dD](\d+|[fF])|(\d+))\s*')
 
@@ -86,3 +86,17 @@ def parse(notation, rng=None):
         raise ValueError(f'Bad dice notation: {notation!r}')
     name = ''.join(parts).removeprefix('+')
     return Roll(dice, name=name)
+
+
+def roll(notation, rng=None):
+    """Parse dice notation, roll it once.
+
+    Convenience for ``parse(notation).roll()``; parsing anew each call, prefer
+    ``parse()`` when making the same roll repeatedly.
+
+    :param notation: Dice notation string, e.g. ``'3d6+2'``.
+    :param rng: Source of randomness given to created dice, overriding class-wide ``Die.rng``.
+    :return: Result of the roll.
+    :raises ValueError: If notation cannot be parsed.
+    """
+    return parse(notation, rng).roll()

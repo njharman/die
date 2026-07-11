@@ -14,12 +14,12 @@ class Statistic:
         stat.avg
 
     :param roll: ``Roll`` instance.
-    :raises ValueError: If roll is not summable.
+    :raises ValueError: If roll is not numeric.
     """
 
     def __init__(self, roll):
-        if not roll.summable:
-            raise ValueError('Roll is not summable')
+        if not roll.numeric:
+            raise ValueError('Roll is not numeric')
         self._roll = roll
         self._bucket = None
         self._sum = None

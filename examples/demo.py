@@ -49,6 +49,8 @@ dSymbolic = die.Symbolic(
         ('meow', 'cat', 1),
     ),
 )
+d6x = die.ExplodingDie(6)
+d20p = die.ExplodingDie(20, explode_to=die.ExplodingDie(6, math_correct=True), math_correct=True)
 
 print_args(f'  {percentile} a {percentile.description}')
 print_args(f'  {Fudge} a {Fudge.description}')
@@ -56,6 +58,19 @@ print_args(f'  {FudgePlus} a {FudgePlus.description}')
 print_args(f'  {FudgeMinus} a {FudgeMinus.description}')
 print_args(f'  {d6} faces {d6.faces} - values {d6.values}')
 print_args(f'  {dSymbolic} faces {dSymbolic.faces} - values {dSymbolic.values}')
+print_args(f'  {d6x} a {d6x.description}')
+print_args(f'  {d20p} a {d20p.description}')
+print_args(f'  {die.d100rm} a {die.d100rm.description}')
+print_args()
+
+print_args('Exploding dice roll again and add when they roll into the explode range.')
+print_args(f'  {d6x} five rolls (some > 6, exploded) {d6x.rolls(5)}')
+print_args(f'  {d20p} five rolls (some > 20, exploded, math corrected) {d20p.rolls(5)}')
+print_args(f'  {die.d100rm} five rolls (Rolemaster double-ended: some > 95 or < 6, exploded) {die.d100rm.rolls(5)}')
+print_args()
+
+print_args('Ready-made dice, importable directly, e.g. `from die import d6, d20x, d100p`.')
+print_args(f'  {die.d6} {die.d6.roll()}, {die.d20x} {die.d20x.roll()}, {die.d100p} {die.d100p.roll()}')
 print_args()
 
 print_args('Different methods to roll Die.')

@@ -148,7 +148,7 @@ class TestDie:
         assert t + 1 == 2
         assert 1 + t == 2
         assert t - 1 == 0
-        assert 1 - t == 0
+        assert 3 - t == 2
         assert t * 3 == 3
         assert 3 * t == 3
         assert t / 2 == 0.5
@@ -371,6 +371,159 @@ class TestStandardDie:
         assert t + 1 == 4
         assert (t > 2) is True
         assert (t <= 3) is True
+
+
+class SequenceRng:
+    """Deterministic rng: choice returns the face matching the next value in a fixed sequence."""
+
+    def __init__(self, values):
+        self.values = list(values)
+
+    def choice(self, seq):
+        value = self.values.pop(0)
+        for face in seq:
+            if face[1] == value:
+                return face
+        raise ValueError(f'{value} not in {seq}')
+
+
+class StubDie(die.die.Die):
+    """Fake ``explode_to`` die whose roll() always returns a forced value, isolating math_correct."""
+
+    def __init__(self, value):
+        super().__init__('stub', (('x', value),))
+
+    def roll(self):
+        return self._faces[0][1]
+
+
+class TestExplodingDie:
+    def test_init_bad_sides(self):
+        with pytest.raises(ValueError, match='Bad number of sides'):
+            die.die.ExplodingDie(0)
+
+    def test_init_bad_explode_to(self):
+        for explode_to in (6, 'nope', 2.5):
+            with pytest.raises(ValueError, match='explode_to must be a Die instance'):
+                die.die.ExplodingDie(6, explode_to=explode_to)
+
+    def test_init_bad_explode_range_vs_sides(self):
+        with pytest.raises(ValueError, match='explode_range must be < sides'):
+            die.die.ExplodingDie(6, explode_range=6)
+
+    def test_init_bad_explode_range_low_negative(self):
+        with pytest.raises(ValueError, match='explode_range_low must be >= 0'):
+            die.die.ExplodingDie(6, explode_range_low=-1)
+
+    def test_init_bad_combined_explode_range_overlap(self):
+        with pytest.raises(ValueError, match='explode_range and explode_range_low combined must be < sides'):
+            die.die.ExplodingDie(6, explode_range=3, explode_range_low=3)
+
+    def test_init_bad_math_correct_with_low_explosion(self):
+        with pytest.raises(ValueError, match='math_correct is not supported with low-end'):
+            die.die.ExplodingDie(6, explode_range_low=1, math_correct=True)
+
+    def test_init_bad_explode_to_low(self):
+        for explode_to_low in (6, 'nope', 2.5):
+            with pytest.raises(ValueError, match='explode_to_low must be a Die instance'):
+                die.die.ExplodingDie(6, explode_to_low=explode_to_low)
+
+    def test_init_good_defaults_explode_to_to_self(self):
+        t = die.die.ExplodingDie(6)
+        assert t.sides == 6
+        assert t.name == 'd6x'
+        assert t.name in t.description
+
+    def test_init_good_explicit_explode_to(self):
+        t = die.die.ExplodingDie(20, explode_to=die.die.Standard(6), math_correct=True)
+        assert t.sides == 20
+        assert t.name == 'd20p'
+        assert 'math corrected' in t.description
+        assert 'd6' in t.description
+
+    def test_is_a_standard_die(self):
+        t = die.die.ExplodingDie(6)
+        assert isinstance(t, die.die.Standard)
+        assert t.faces == [str(x) for x in range(1, 7)]
+        assert t.values == list(range(1, 7))
+        assert t.numeric
+        assert t == die.die.Standard(6)
+
+    def test_roll_no_explosion(self):
+        t = die.die.ExplodingDie(6, rng=SequenceRng([3]))
+        assert t.roll() == 3
+
+    def test_roll_explodes_once(self):
+        t = die.die.ExplodingDie(6, rng=SequenceRng([6, 3]))
+        assert t.roll() == 9
+
+    def test_roll_explodes_repeatedly(self):
+        t = die.die.ExplodingDie(6, rng=SequenceRng([6, 6, 2]))
+        assert t.roll() == 14
+
+    def test_roll_math_correct_subtracts_one_from_explode_to_roll(self):
+        # Forced explode_to.roll() == 5, initial roll forced to 6 (explodes): 6 + (5 - 1) == 10.
+        stub = StubDie(5)
+        t = die.die.ExplodingDie(6, explode_to=stub, math_correct=True, rng=SequenceRng([6]))
+        assert t.roll() == 10
+
+    def test_roll_without_math_correct_keeps_full_explode_to_roll(self):
+        # Same forced rolls, math_correct=False: 6 + 5 == 11, no subtraction.
+        stub = StubDie(5)
+        t = die.die.ExplodingDie(6, explode_to=stub, math_correct=False, rng=SequenceRng([6]))
+        assert t.roll() == 11
+
+    def test_roll_math_correct_only_applies_on_explosion(self):
+        # No explosion (roll is 3, not max): forced explode_to is never consulted.
+        stub = StubDie(5)
+        t = die.die.ExplodingDie(6, explode_to=stub, math_correct=True, rng=SequenceRng([3]))
+        assert t.roll() == 3
+
+    def test_roll_math_correct_matches_hackmaster_rule(self):
+        # Matches Hackmaster rule: d8p rolling (8, 1) totals 8, not 9.
+        t = die.die.ExplodingDie(8, math_correct=True, rng=SequenceRng([8, 1]))
+        assert t.roll() == 8
+
+    def test_roll_explodes_down_to_explode_to(self):
+        sub = die.die.ExplodingDie(6, math_correct=True, rng=SequenceRng([6, 3]))
+        t = die.die.ExplodingDie(20, explode_to=sub, math_correct=True, rng=SequenceRng([20]))
+        assert t.roll() == 27
+
+    def test_roll_custom_explode_range(self):
+        t = die.die.ExplodingDie(100, explode_range=5, rng=SequenceRng([96, 1]))
+        assert t.roll() == 97
+
+    def test_init_good_defaults_explode_to_low_to_self(self):
+        t = die.die.ExplodingDie(100, explode_range_low=5)
+        assert t.sides == 100
+        assert t.name == 'd100x'
+
+    def test_init_double_ended_description(self):
+        t = die.die.ExplodingDie(100, explode_range=5, explode_range_low=5)
+        assert 'explodes at or below 5 subtracting a roll of' in t.description
+
+    def test_roll_no_low_explosion_by_default(self):
+        t = die.die.ExplodingDie(6, rng=SequenceRng([1]))
+        assert t.roll() == 1
+
+    def test_roll_single_low_explosion(self):
+        t = die.die.ExplodingDie(100, explode_range=5, explode_range_low=5, rng=SequenceRng([3, 20]))
+        assert t.roll() == -17
+
+    def test_roll_low_explosion_recursive(self):
+        t = die.die.ExplodingDie(6, explode_range_low=2, rng=SequenceRng([1, 2, 4]))
+        assert t.roll() == 3
+
+    def test_roll_low_explosion_explicit_explode_to_low(self):
+        stub = StubDie(7)
+        t = die.die.ExplodingDie(20, explode_range_low=2, explode_to_low=stub, rng=SequenceRng([1]))
+        assert t.roll() == -6
+
+    def test_coercion_and_operators(self):
+        t = die.die.ExplodingDie(6, rng=SequenceRng([3]))
+        assert int(t) == 3
+        t = die.die.ExplodingDie(6, rng=SequenceRng([3]))
+        assert t + 1 == 4
 
 
 class TestNumeric(TestNumericBased):
