@@ -31,3 +31,9 @@ die.stats
 
 .. automodule:: die.stats
    :members:
+
+die.charts
+----------
+
+.. automodule:: die.charts
+   :members:
