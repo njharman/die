@@ -28,12 +28,14 @@ Homepage = "https://github.com/njharman/die"
 Repository = "https://github.com/njharman/die"
 Changelog = "https://github.com/njharman/die/blob/main/CHANGELOG.rst"
 Issues = "https://github.com/njharman/die/issues"
+Documentation = "https://python-die.readthedocs.io"
 
 [tool.hatch.version]
 path = "src/die/__init__.py"
 
 [dependency-groups]
 dev = ["pre-commit>=4", "pytest>=8", "pytest-cov>=6", "ruff>=0.6"]
+docs = ["sphinx>=8", "furo>=2024.8"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -55,24 +57,26 @@ quote-style = "single"
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Unused import
+"docs/source/conf.py" = ["A001", "D100"]  # `copyright` is Sphinx's required config name; conf.py doesn't need a module docstring
+"examples/*" = ["D"]  # pydocstyle (examples don't need docstrings)
 "tests/*" = [
+  "D", # pydocstyle (tests don't need docstrings)
   "S101", # S101 (asserts are how pytest works!)
   "SIM",
   ]
 
 [tool.ruff.lint]
 ignore = [
-  "C408", # Unnecessary dict/list call
-  "C416", # Unnecessary list comprehension
-  "COM819", # Trailing is da bomb
+  "C408", # Unnecessary dict/list call, (says you, consistency is more important speed of special case {}, [])
+  "C416", # Unnecessary list comprehension (says you)
+  "COM819", # Trailing comma is da bomb
   "E731", # I'll assign lambda expression if I want to, and I do!
-  "S311", # Standard pseudo-random generators are not suitable for security/cryptographic purposes
-  "SIM108", # No like ternary operator
-  "TRY003", # Avoid  specifying long messages outside the exception class
+  "S311", # (I know) Standard pseudo-random generators are not suitable for security/cryptographic purposes
+  "SIM108", # I no like ternary operator
+  "TRY003", # (I won't) Avoid specifying long messages outside the exception class
 ]
 select = [
   #"ARG", # flake8 unused arguments (not really helpful, unused func args are common and ok)
-  #"D", # pydocstyle (too much)
   #"N", # pep8-naming (too opinionated)
   #"NPY", # numpy
   #"PD", # pandas
@@ -84,6 +88,24 @@ select = [
   "BLE", # flake8-blind-except
   "C4", # unnecessary comprehensions, map()
   "COM", # flake8-commas
+  "D100", # Missing docstring in public module
+  "D101", # Missing docstring in public class
+  "D102", # Missing docstring in public method
+  "D103", # Missing docstring in public function
+  "D200", # One-line docstring should fit on one line
+  "D201", # No blank lines allowed after function docstring
+  "D202", # No blank lines allowed after function docstring
+  "D205", # 1 blank line required between summary line and description
+  "D206", # Docstring should be indented with spaces, not tabs
+  "D207", # Docstring under-indented
+  "D208", # Docstring over-indented
+  "D209", # Multi-line docstring closing quotes on separate line
+  "D210", # No whitespaces allowed surrounding docstring text
+  "D211", # No blank lines allowed before class docstring
+  "D212", # Multi-line docstring summary should start at the first line
+  "D300", # Use triple double quotes
+  "D301", # Use r-string if any backslashes in a docstring
+  "D415", # First line should end with punctuation (period/?/!)
   "DTZ", # flake8-datetimez
   "E", # pycodestyle
   "ERA", # No commented out code

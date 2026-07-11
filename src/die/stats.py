@@ -1,17 +1,23 @@
+"""Roll dice repeatedly and calculate statistics."""
+
 from collections import Counter
 
 
 class Statistic:
-    """Roll lots of dice, calc statistics.
+    """Roll dice many times, report statistics.
 
     ``run()`` must be called before accessing ``sum``, ``avg``, or ``bucket``.
+
+    Ten thousand rolls of 3d6::
+        stat = die.Statistic(die.parse('3d6'))
+        stat.run(10000)
+        stat.avg
+
+    :param roll: ``Roll`` instance.
+    :raises ValueError: If roll is not summable.
     """
 
     def __init__(self, roll):
-        """
-        :param roll: ``Roll`` instance.
-        :raises ValueError: If roll is not summable.
-        """
         if not roll.summable:
             raise ValueError('Roll is not summable')
         self._roll = roll

@@ -1,4 +1,4 @@
-"""die
+"""die.
 
 Classes to represent various dice, dice rolls, and stats on same.
 

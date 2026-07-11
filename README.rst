@@ -58,6 +58,18 @@ pre-commit_ runs ``ruff check`` and ``ruff format`` automatically before each co
     pre-commit run --all-files
 
 
+Documentation
+-------------
+Full docs at `Read the Docs`_.
+
+Build locally::
+
+    uv sync --group docs
+    uv run sphinx-build -b html docs/source docs/build
+
+Then open ``docs/build/index.html`` in a browser.
+
+
 History
 -------
 See CHANGELOG_ for release history and breaking changes.
@@ -65,3 +77,4 @@ See CHANGELOG_ for release history and breaking changes.
 
 .. _pre-commit: https://pre-commit.com/
 .. _CHANGELOG: https://github.com/njharman/die/blob/main/CHANGELOG.rst
+.. _Read the Docs: https://python-die.readthedocs.io

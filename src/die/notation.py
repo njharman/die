@@ -17,7 +17,7 @@ def _fudge_die(negate, rng):
 
 
 def parse(notation, rng=None):
-    """Parse dice notation into a ``Roll``.
+    """Parse dice notation into a ``Roll`` instance.
 
     Notation is terms joined by ``+`` or ``-``. A term is ``NdS`` (N S-sided
     dice), ``NdF`` (N Fudge dice), or an integer constant::
