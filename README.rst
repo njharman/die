@@ -17,6 +17,8 @@ via pip::
 
     pip install die
 
+Also on PyPI_.
+
 
 Quickstart
 ----------
@@ -360,3 +362,4 @@ See CHANGELOG_ for release history and breaking changes.
 .. _pre-commit: https://pre-commit.com/
 .. _CHANGELOG: https://github.com/njharman/die/blob/main/CHANGELOG.rst
 .. _Read the Docs: https://python-die.readthedocs.io
+.. _PyPI: https://pypi.org/project/die/

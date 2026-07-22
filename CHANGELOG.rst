@@ -1,6 +1,10 @@
 Changelog
 =========
 
+3.0.1
+  - Add GitHub Actions workflow to auto-publish releases to PyPI via Trusted Publishing.
+  - Add PyPI project link to README.
+
 3.0.0
   Backwards incompatible changes:
     - ``Die``/``Roll`` ``name`` constructor parameter and property renamed ``notation``.
