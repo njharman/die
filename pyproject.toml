@@ -38,6 +38,7 @@ dev = ["pre-commit>=4", "pytest>=8", "pytest-cov>=6", "ruff>=0.6"]
 docs = ["sphinx>=8", "furo>=2024.8"]
 
 [tool.pytest.ini_options]
+cache_dir = "$HOME/.cache/pytest/die"
 testpaths = ["tests"]
 addopts = "-ra --strict-markers --cov=die --cov-report=term-missing"
 

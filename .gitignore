@@ -10,4 +10,6 @@ __pycache__
 .tox
 
 # Slop!
+.claude
 CLAUDE.md
+claude_*.md
