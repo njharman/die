@@ -51,86 +51,108 @@ exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 fail_under = 100
 
 [tool.ruff]
-target-version = "py314"
 line-length = 100
 
 [tool.ruff.format]
 quote-style = "single"
 
-[tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]  # Unused import
-"docs/source/conf.py" = ["A001", "D100"]  # `copyright` is Sphinx's required config name; conf.py doesn't need a module docstring
-"examples/*" = ["D", "T201"]  # pydocstyle (examples don't need docstrings); print is how demos demo
-"tests/*" = [
-  "D", # pydocstyle (tests don't need docstrings)
-  "S101", # S101 (asserts are how pytest works!)
-  "SIM",
-  ]
-
 [tool.ruff.lint]
-ignore = [
-  "C408", # Unnecessary dict/list call, (says you, consistency is more important speed of special case {}, [])
-  "C416", # Unnecessary list comprehension (says you)
-  "COM819", # Trailing comma is da bomb
-  "E731", # I'll assign lambda expression if I want to, and I do!
-  "S311", # (I know) Standard pseudo-random generators are not suitable for security/cryptographic purposes
-  "SIM108", # I no like ternary operator
-  "TRY003", # (I won't) Avoid specifying long messages outside the exception class
-]
 select = [
-  #"ARG", # flake8 unused arguments (not really helpful, unused func args are common and ok)
-  #"N", # pep8-naming (too opinionated)
-  #"NPY", # numpy
-  #"PD", # pandas
-  #"PL", # Full Pylint (too much)
-  #"PLR", # Pylint refactor (too much/too opinionated)
   "A", # flake8-builtins
-  "ASYNC", # https://docs.astral.sh/ruff/rules/#flake8-async-async
+  "ASYNC", # flake8-async
   "B", # flake8-bugbear
   "BLE", # flake8-blind-except
   "C4", # unnecessary comprehensions, map()
   "COM", # flake8-commas
-  "D100", # Missing docstring in public module
-  "D102", # Missing docstring in public method
-  "D103", # Missing docstring in public function
-  "D200", # One-line docstring should fit on one line
-  "D201", # No blank lines allowed after function docstring
-  "D202", # No blank lines allowed after function docstring
-  "D205", # 1 blank line required between summary line and description
-  "D206", # Docstring should be indented with spaces, not tabs
-  "D207", # Docstring under-indented
-  "D208", # Docstring over-indented
-  "D209", # Multi-line docstring closing quotes on separate line
-  "D210", # No whitespaces allowed surrounding docstring text
-  "D211", # No blank lines allowed before class docstring
-  "D212", # Multi-line docstring summary should start at the first line
-  "D300", # Use triple double quotes
-  "D301", # Use r-string if any backslashes in a docstring
-  "D415", # First line should end with punctuation (period/?/!)
+  # pydocstyle, docstring formatting; plus D100/D102/D103 because die is a documented public library
+  "D100", # missing docstring in public module
+  "D102", # missing docstring in public method
+  "D103", # missing docstring in public function
+  "D200", # one-line docstring fits on one line
+  "D201", # no blank line before function docstring
+  "D202", # no blank line after function docstring
+  "D205", # blank line between summary and description
+  "D206", # indent docstring with spaces
+  "D207", # docstring under-indented
+  "D208", # docstring over-indented
+  "D209", # multi-line closing quotes on own line
+  "D210", # no whitespace around docstring text
+  "D211", # no blank line before class docstring (pick of D203/D211)
+  "D212", # multi-line summary on first line (pick of D212/D213)
+  "D300", # triple double quotes
+  "D301", # r-string if backslashes in docstring
+  "D403", # capitalize first word
+  "D415", # summary ends with punctuation
+  "D419", # no empty docstrings
   "DTZ", # flake8-datetimez
   "E", # pycodestyle
-  "ERA", # No commented out code
+  "ERA", # no commented out code
   "EXE", # flake8-executable
   "F", # pyflakes
-  "FLY", # flynt
+  "FLY", # flynt: "".join() of static strings → f-string
+  "FURB", # refurb: modern idioms (open().read() → read_text, operator funcs, min/max)
   "G", # flake8-logging-format
   "I", # isort
-  "ICN", # https://github.com/joaopalmeiro/flake8-import-conventions
-  "ISC", # https://pypi.org/project/flake8-implicit-str-concat/
+  "ICN", # import conventions
+  "ISC", # implicit string concat
   "LOG", # flake8-logging
-  "PERF", # perflint
-  "PIE", # https://pypi.org/project/flake8-pie/
-  "PLC", # Pylint conventions
-  "PLE", # Pylint error
-  "PLW", # Pylint warnings
-  "PT", # https://pypi.org/project/flake8-pytest-style/
-  "PTH", # flake8 use pathlib
-  "RET", # https://pypi.org/project/flake8-return/
-  "RUF", # Ruff rules
-  "S", # https://docs.astral.sh/ruff/rules/#flake8-bandit-s
-  "SIM", # https://pypi.org/project/flake8-simplify/
-  "T", # flake8-debugger
-  "TRY", # tryceratops
-  "UP", # pyupgrade
-  "W", # pycodestyle
+  "PERF", # perflint: slow loop patterns (append in loop, dict.items misuse)
+  "PGH", # pygrep-hooks (blanket noqa, etc.)
+  "PIE", # flake8-pie: misc cruft (unneeded pass, dup class fields, redundant range start)
+  "PLC", # pylint conventions
+  "PLE", # pylint errors
+  "PLW", # pylint warnings
+  "PT", # flake8-pytest-style
+  "PTH", # use pathlib
+  "RET", # flake8-return
+  "RSE", # flake8-raise
+  "RUF", # ruff rules
+  "S", # flake8-bandit
+  "SIM", # flake8-simplify
+  "SLF", # private member access
+  "T10", # debugger: leftover breakpoint()/pdb
+  "T20", # print: stray print()/pprint()
+  "TID", # tidy imports
+  "TRY", # tryceratops: exception handling (raise bare Exception, verbose re-raise, try/else, log.exception)
+  "UP", # pyupgrade: drop syntax obsolete for target-version
+  "W", # pycodestyle warnings
+  "YTT", # sys.version misuse
+]
+ignore = [
+  "C408", # dict()/list() calls are fine
+  "C416", # list comprehension over plain iteration is fine (says you)
+  "COM812", # conflicts with the formatter
+  "COM819", # trailing commas are fine
+  "E501", # line length is the formatter's job
+  "E731", # lambda assignment is fine
+  "RET503", # implicit return None is fine
+  "RUF012", # fix wants typing.ClassVar annotation; no type hints
+  "S311", # random used for dice simulation, not crypto
+  "SIM108", # ternaries allowed, not required
+  "SIM300", # yoda conditions are fine
+  "TRY003", # long messages at raise site are fine
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = [
+  "F401", # re-exports
+]
+"docs/source/conf.py" = [
+  "A001", # `copyright` is Sphinx's required config name
+  "D100", # conf.py doesn't need a module docstring
+]
+"src/die/**" = [
+  "SLF001", # die modules share package-private members (_prec, _dice, _func, ...)
+]
+"examples/*" = [
+  "D", # examples don't need docstrings
+  "T201", # print is how demos demo
+]
+"tests/**" = [
+  "D", # tests don't need docstrings
+  "S101", # assert is how pytest works
+  "S108", # temp paths in tests
+  "SIM", # tests spell out conditions explicitly for readability
+  "SLF001", # tests may poke private members
+  "T201", # print in tests is fine
 ]
