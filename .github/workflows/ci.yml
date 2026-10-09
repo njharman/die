@@ -2,8 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [trunk, master]
+    branches: [trunk]
   pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -12,11 +15,13 @@ jobs:
       matrix:
         python-version: ["3.14"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.2.0
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --locked
       - run: uv run ruff check .
-      - run: uv run ruff format .
+      - run: uv run ruff format --check .
       - run: uv run pytest

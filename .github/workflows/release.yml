@@ -13,13 +13,15 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.2.0
         with:
           python-version: "3.14"
       - run: uv sync --locked
       - run: uv run ruff check .
-      - run: uv run ruff format . --check
+      - run: uv run ruff format --check .
       - run: uv run pytest
       - name: Check version matches release tag
         run: |
