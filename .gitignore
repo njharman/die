@@ -8,8 +8,3 @@ __pycache__
 # Unit test / coverage reports
 .coverage
 .tox
-
-# Slop!
-.claude
-CLAUDE.md
-claude_*.md
